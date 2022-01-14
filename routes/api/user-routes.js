@@ -51,14 +51,43 @@ router.post("/", (req,res) => {
 
 });
 
+//POST login
+router.post("/login", (req,res) => {
+    //query operation to validate login
+    User.findOne({
+        where: {
+            email: req.body.email
+        }
+    }).then(userData => {
+        if(!userData) {
+            res.status(400).json({message: 'no user found with that email'});
+            return;
+        }
+        //verify the user
+        const validPassword = userData.checkPassword(req.body.password);
+        if(!validPassword) {
+            res.status(400).json({message: "incorrect password"});
+            return;
+        }
+        res.json({user:userData, message: 'You are now logged in!'});
+
+    });
+});
+
+
+
+
+
+
 //PUT /api/users/1
 router.put("/:id", (req,res) => {
 
-    User.update(req.body,{
+    User.update(req.body, {
+        individualHooks: true,
         where: {
-            id: req.params.id
+          id: req.params.id
         }
-    }).then(userData => {
+      }).then(userData => {
         if(!userData[0]) {
             res.status(404).json({message: 'No user found with this ID'});
             return;
